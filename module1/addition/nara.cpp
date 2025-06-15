@@ -3,21 +3,15 @@
 
 using namespace std;
 
-template <typename T>
-struct Node {
-    T* data;
-    Node* next;
-    Node(T* data) : data(data), next(nullptr) {}
-};
 
 template <typename T>
 class LinkedList {
-private:
+    private:
     Node<T>* head;
-
-public: 
+    
+    public: 
     LinkedList() : head(nullptr) {}
-
+    
     ~LinkedList() {
         Node<T>* current = head;
         while (current != nullptr) {
@@ -26,7 +20,7 @@ public:
             current = next;
         }
     }
-
+    
     // add new node to end of list
     void add(T* data) {
         Node<T>* newNode = new Node<T>(data);
@@ -40,28 +34,70 @@ public:
             current->next = newNode;
         }
     }
-
+    
     // display all nodes in the list
     void display() {
         Node<T>* current = head;
+        if (head == nullptr) {
+            cout << "List is empty." << endl;
+            return;
+        }
         while (current != nullptr) {
             current->data->displayInfo();
+            cout << "------------------------" << endl;
             current = current->next;
         }
+    }
+    
+    // find node by ID
+    T* find(const string& id) {
+        Node<T>* current = head;
+        while (current != nullptr) {
+            if (current->data->getIdProduk() == id) {
+                return current->data;
+            }
+            current = current->next;
+        }
+        return nullptr; 
+    }
+    
+    // remove node by ID
+    bool remove(const string& id) {
+        Node<T>* current = head;
+        Node<T>* previous = nullptr;
+        
+        while (current != nullptr && current->data->getIdProduk() != id) {
+            previous = current;
+            current = current->next;
+        }
+
+        if (current == nullptr) {
+            return false; // ID not found
+        }
+        
+        if (previous == nullptr) {
+            head = current->next;
+        } else {
+            previous->next = current->next;
+        }
+        
+        delete current->data;
+        delete current; 
+        return true;
     }
 };
 
 class Toko {
-
+    public: 
+    virtual ~Toko() {} // destructor for proper cleanup in inheritance
 };
 
 class PegawaiToko : public Toko {
-private:
-    string  nama_pegawai,
-            id_pegawai,
-            jabatan_pegawai;
-
-    int     gaji_pegawai;
+protected:
+    string nama_pegawai,
+           id_pegawai,
+           jabatan_pegawai;
+    int gaji_pegawai;
 
 public: 
     PegawaiToko(string nama, string id, string jabatan, int gaji) : 
@@ -70,84 +106,29 @@ public:
         jabatan_pegawai(jabatan), 
         gaji_pegawai(gaji) {}
 
-    void setNamaPegawai(string nama) {
-        nama_pegawai = nama;
-    }
+    void setNamaPegawai(string nama) { nama_pegawai = nama; }
+    void setJabatanPegawai(string jabatan) { jabatan_pegawai = jabatan; }
+    string getNamaPegawai() { return nama_pegawai; }
+    string getIdPegawai() { return id_pegawai; }
+    string getJabatanPegawai() { return jabatan_pegawai; }
+    int getGajiPegawai() { return gaji_pegawai; }
+    void setGajiPegawai(int gaji) { gaji_pegawai = gaji; }
 
-    void setIdPegawai(string id) {
-        id_pegawai = id;
-    }
-
-    void setJabatanPegawai(string jabatan) {
-        jabatan_pegawai = jabatan;
-    }
-
-    string getNamaPegawai() {
-        return nama_pegawai;
-    }
-
-    string getIdPegawai() {
-        return id_pegawai;
-    }
-
-    string getJabatanPegawai() {
-        return jabatan_pegawai;
-    }
-    
     virtual void displayInfo() {
-        cout << "Nama Pegawai: " << nama_pegawai << endl
-             << "ID Pegawai: " << id_pegawai << endl
-             << "Jabatan Pegawai: " << jabatan_pegawai << endl;
+        cout << "ID Pegawai\t: " << id_pegawai << endl
+        << "Nama\t\t: " << nama_pegawai << endl
+        << "Jabatan\t: " << jabatan_pegawai << endl
+        << "Gaji\t\t: " << gaji_pegawai << endl;
     }
-};
-
-class Kasir : public PegawaiToko {
-private: 
-    string nomor_meja_kasir;
-    int     total_penjualan;
-
-public: 
-    Kasir(string nama, string id, string jabatan, int gaji, string nomor_meja) : 
-        PegawaiToko(nama, id, jabatan, gaji), 
-        nomor_meja_kasir(nomor_meja), 
-        total_penjualan(0) {}
-
-    void setNomorMejaKasir(string nomor) {
-        nomor_meja_kasir = nomor;
-    }
-
-    void setTotalPenjualan(int total) {
-        total_penjualan = total;
-    }
-
-    string getNomorMejaKasir() {
-        return nomor_meja_kasir;
-    }
-
-    int getTotalPenjualan() {
-        return total_penjualan;
-    }
-
-    void displayInfo() override {
-        PegawaiToko::displayInfo();
-        cout << "Nomor Meja Kasir: " << nomor_meja_kasir << endl
-             << "Total Penjualan: " << total_penjualan << endl;
-    }
-
-};
-
-class PenjagaRak : public PegawaiToko {
-
 };
 
 class ProdukDisplay : public Toko {
-private: 
-    string  id_produk,
-            nama_produk, 
-            kategori_produk;
-            
-    double  harga_produk;
-    int     stok_produk;
+protected: 
+    string id_produk,
+           nama_produk,
+           kategori_produk;        
+    double harga_produk;
+    int stok_produk;
 
 public:
     ProdukDisplay(string nama, string id, string kategori, double harga, int stok) : 
@@ -157,103 +138,93 @@ public:
         harga_produk(harga), 
         stok_produk(stok) {}
 
-    void setNamaProduk(string nama) {
-        nama_produk = nama;
-    }
-    
-    virtual void displayInfo () {
-        cout << "ID: " << id_produk << endl
-             << "Nama: " << nama_produk << endl
-             << "Kategori: " << kategori_produk << endl
-             << "Harga: " << harga_produk << endl
-             << "Stok: " << stok_produk << endl;
-    }
+    string getIdProduk() { return id_produk; }
+    string getNamaProduk() { return nama_produk; }
+    int getStokProduk() { return stok_produk; }
+    void setStokProduk(int stok) { stok_produk = stok; }
 
-    string getNamaProduk() {
-        return nama_produk;
+    virtual void displayInfo() {
+        cout << "ID Produk\t: " << id_produk << endl
+             << "Nama\t\t: " << nama_produk << endl
+             << "Kategori\t: " << kategori_produk << endl
+             << "Harga\t\t: " << harga_produk << endl
+             << "Stok\t\t: " << stok_produk << endl;
     }
+};
 
-    string getIdProduk() {
-        return id_produk;
-    }
-
-    string getKategoriProduk() {
-        return kategori_produk;
-    }
-
-    int getHargaProduk() {
-        return harga_produk;
-    }
-
-    int getStokProduk() {
-        return stok_produk;
-    }
-
-    void setNamaProduk(string nama) {
-        nama_produk = nama;
-    }
-
-    void setIdProduk(string id) {
-        id_produk = id;
-    }
-    
-    void setKategoriProduk(string kategori) {
-        kategori_produk = kategori;
-    }
-    
-    void setHargaProduk(double harga) {
-        harga_produk = harga;
-    }
-    
-    void setStokProduk(double stok) {
-        stok_produk = stok;
-    }
+class Gudang{
 
 };
+template <typename T>
+struct Node {
+    T* data;
+    Node* next;
+    Node(T* data) : data(data), next(nullptr) {}
+};
+class Kasir : public PegawaiToko {
+    private: 
+    string nomor_meja_kasir;
+    
+    public: 
+    Kasir(string nama, string id, int gaji, string nomor_meja) : 
+        PegawaiToko(nama, id, "Kasir", gaji), 
+        nomor_meja_kasir(nomor_meja) {}
+
+    void displayInfo() override {
+        PegawaiToko::displayInfo();
+        cout << "Nomor Meja Kasir: " << nomor_meja_kasir << endl;
+    }
+};
+
+class PenjagaRak : public PegawaiToko {
+private: 
+    string area_tugas; 
+
+public: 
+    PenjagaRak(string nama, string id, int gaji, string area) : 
+        PegawaiToko(nama, id, "Penjaga Rak", gaji), 
+        area_tugas(area) {}
+
+    void displayInfo() override {
+        PegawaiToko::displayInfo();
+        cout << "Area Tugas\t: " << area_tugas << endl;
+    }
+};
+
 
 class Buku : public ProdukDisplay {
 private:
-    string  penulis_buku,
-            genre_buku;
+    string penulis_buku,
+           genre_buku;
 
 public:
-    Buku(string id, string nama, string kategori, double harga, int stok, string penulis, string genre) : 
-        ProdukDisplay(nama, id, kategori, harga, stok), 
+    Buku(string id, string nama, double harga, int stok, string penulis, string genre) : 
+        ProdukDisplay(nama, id, "Buku", harga, stok), 
         penulis_buku(penulis), 
         genre_buku(genre) {}
 
     void displayInfo() override {
-        cout << "Buku Info:" << endl; 
         ProdukDisplay::displayInfo();
-        cout << "Penulis: " << penulis_buku << endl
-             << "Genre: " << genre_buku << endl;
+        cout << "Penulis\t: " << penulis_buku << endl
+             << "Genre\t\t: " << genre_buku << endl;
     }
 };
 
 class Majalah : public ProdukDisplay {
 private:
-    string  penerbit_majalah,
-            edisi_majalah;
+    string edisi_majalah;
 
 public:
-    Majalah(string id, string nama, string kategori, double harga, int stok, string penerbit, string edisi) : 
-        ProdukDisplay(nama, id, kategori, harga, stok), 
-        penerbit_majalah(penerbit), 
+    Majalah(string id, string nama, double harga, int stok, string edisi) : 
+        ProdukDisplay(nama, id, "Majalah", harga, stok), 
         edisi_majalah(edisi) {}
 
     void displayInfo() override {
-        cout << "Majalah Info:" << endl;
         ProdukDisplay::displayInfo();
-        cout << "Penerbit: " << penerbit_majalah << endl
-             << "Edisi: " << edisi_majalah << endl
-             << "Penerbit: " << penerbit_majalah << endl
-             << "Edisi: " << edisi_majalah << endl;
+        cout << "Edisi\t\t: " << edisi_majalah << endl;
     }
 };
 
-class Gudang : public Toko {
-
-};
 
 class ManajerGudang : public PegawaiToko {
 
