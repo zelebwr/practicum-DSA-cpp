@@ -3,6 +3,16 @@
 
 using namespace std;
 
+class PegawaiToko;
+class ProdukDisplay;
+class Gudang;
+
+template <typename T>
+struct Node {
+    T* data;
+    Node* next;
+    Node(T* data) : data(data), next(nullptr) {}
+};
 
 template <typename T>
 class LinkedList {
@@ -16,6 +26,7 @@ class LinkedList {
         Node<T>* current = head;
         while (current != nullptr) {
             Node<T>* next = current->next;
+            delete current->data; 
             delete current;
             current = next;
         }
@@ -42,9 +53,11 @@ class LinkedList {
             cout << "List is empty." << endl;
             return;
         }
+        Node<T>* current = head;
+        int count = 1;
         while (current != nullptr) {
+            cout << "--- Item " << count++ << " ---" << endl;
             current->data->displayInfo();
-            cout << "------------------------" << endl;
             current = current->next;
         }
     }
@@ -70,7 +83,7 @@ class LinkedList {
             previous = current;
             current = current->next;
         }
-
+        
         if (current == nullptr) {
             return false; // ID not found
         }
@@ -152,15 +165,112 @@ public:
     }
 };
 
-class Gudang{
+class Kasir : public PegawaiToko {
+public: 
+    Kasir(string nama, string id, int gaji) : 
+        PegawaiToko(nama, id, "Kasir", gaji) {}
+};
 
+class PenjagaRak : public PegawaiToko {
+public:
+    PenjagaRak(string nama, string id, int gaji) :
+        PegawaiToko(nama, id, "Penjaga Rak", gaji) {}
 };
-template <typename T>
-struct Node {
-    T* data;
-    Node* next;
-    Node(T* data) : data(data), next(nullptr) {}
+
+class ManajerGudang : public PegawaiToko {
+public:
+    ManajerGudang(string nama, string id, int gaji) :
+        PegawaiToko(nama, id, "Manajer Gudang", gaji) {}
 };
+
+class Distributor : public PegawaiToko {
+public:
+    Distributor(string nama, string id, int gaji) :
+        PegawaiToko(nama, id, "Distributor", gaji) {}
+};
+
+class Gudang{
+private: 
+    LinkedList<ProdukDisplay> daftar_produk;
+    LinkedList<PegawaiToko> daftar_pegawai;
+
+public:
+    Gudang() {
+        daftar_produk.add(new Buku("B001", "C++ Programming", 150000, 10, "Bjarne Stroustrup", "Programming"));
+        daftar_produk.add(new Majalah("M001", "Tech Monthly", 50000, 20, "January 2023"));
+        daftar_pegawai.add(new Kasir("Alice", "K001", 5000000, "11"));
+        daftar_pegawai.add(new PenjagaRak("Bob", "P001", 4000000, "A1"));
+    }
+
+    void clearInput() {
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear the input buffer
+    }
+
+    void tambahProdukBaru(){
+        int type; 
+        cout << "\nPilih tipe produk (1: Buku; 2: Majalah): "; 
+        cin >> type;
+        clearInput(); // clear the input buffer after reading type
+
+        string id, nama; 
+        double harga; 
+        int stok; 
+
+        cout << "ID Produk: "; getline(cin, id);
+        cout << "Nama Produk: "; getline(cin, nama);
+        cout << "Harga Produk: "; cin >> harga;
+        cout << "Stok Produk: "; cin >> stok;
+        clearInput(); // clear the input buffer after reading stok
+
+        if (type == 1) {
+            string penulis, genre;
+            cout << "Penulis Buku: "; getline(cin, penulis);
+            cout << "Genre Buku: "; getline(cin, genre);
+            daftar_produk.add(new Buku(id, nama, harga, stok, penulis, genre));
+        } else if (type == 2) {
+            string edisi;
+            cout << "Edisi Majalah: "; getline(cin, edisi);
+            daftar_produk.add(new Majalah(id, nama, harga, stok, edisi));
+        } else {
+            cout << "Tipe produk tidak valid." << endl;
+            return;
+        }
+        cout << "Produk berhasil ditambahkan." << endl;
+    }
+
+    void lihatDaftarProduk() {
+        cout << "\n--- Menampilkan Semua Produk di Gudang ---" << endl;
+        daftar_produk.display();
+    }
+
+    void tambahPegawaiBaru() {
+        string nama, id, jabatan;
+        int gaji;
+
+        cout << "\nNama Pegawai: "; getline(cin, nama);
+        cout << "ID Pegawai: "; getline(cin, id);
+        cout << "Jabatan Pegawai: "; getline(cin, jabatan);
+        cout << "Gaji Pegawai: "; cin >> gaji;
+        clearInput(); // clear the input buffer after reading gaji
+
+        if (jabatan == "Kasir") {
+            string nomor_meja;
+            cout << "Nomor Meja Kasir: "; getline(cin, nomor_meja);
+            daftar_pegawai.add(new Kasir(nama, id, gaji, nomor_meja));
+        } else if (jabatan == "Penjaga Rak") {
+            string area_tugas;
+            cout << "Area Tugas Penjaga Rak: "; getline(cin, area_tugas);
+            daftar_pegawai.add(new PenjagaRak(nama, id, gaji, area_tugas));
+        } else if (jabatan == "Manajer Gudang") {
+            daftar_pegawai.add(new ManajerGudang(nama, id, gaji));
+    }
+
+    void lihatDaftarPegawai() {
+        cout << "\n--- Menampilkan Semua Pegawai Toko ---" << endl;
+        daftar_pegawai.display();
+    }
+};
+
 class Kasir : public PegawaiToko {
     private: 
     string nomor_meja_kasir;
